@@ -16,20 +16,20 @@ import javax.ws.rs.core.MediaType;
 public class RestService {
     
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<String> retrieveRecords() throws IOException {
-        FilePersistor persistor = new FilePersistor();
-        return persistor.getIDs();
-    }
-    
-    @GET
-    @Path("/{recordID}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String retrieveRecord(@PathParam("recordID") String id) throws IOException {
-        FilePersistor persistor = new FilePersistor();
-        return persistor.jsonString(Integer.valueOf(id));
-    }
+//    @GET
+//    @Produces(MediaType.APPLICATION_JSON)
+//    public List<String> retrieveRecords() throws IOException {
+//        FilePersistor persistor = new FilePersistor();
+//        return persistor.getIDs();
+//    }
+//    
+//    @GET
+//    @Path("/{recordID}")
+//    @Produces(MediaType.APPLICATION_JSON)
+//    public String retrieveRecord(@PathParam("recordID") String id) throws IOException {
+//        FilePersistor persistor = new FilePersistor();
+//        return persistor.jsonString(Integer.valueOf(id));
+//    }
     
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
