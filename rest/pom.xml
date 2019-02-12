@@ -56,6 +56,17 @@
         -->
         
         <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>1.4.7</version>
+        </dependency>
+        <dependency>
+    <groupId>org.masukomi</groupId>
+    <artifactId>aspirin</artifactId>
+    <version>0.11.01</version>
+</dependency>
+        
+        <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
             <version>${tomcat.version}</version>
