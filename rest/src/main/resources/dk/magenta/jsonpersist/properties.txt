@@ -1,1 +1,5 @@
 root=../storage
+mailhost=localhost
+mailfrom=noreply@danva.dk
+mailtofield=contact_email
+logopath=http://alfrescodanva8080.magenta.dk/danva-logo.png

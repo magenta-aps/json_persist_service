@@ -5,11 +5,11 @@
  */
 package dk.magenta.jsonpersist.persistence;
 
+import dk.magenta.jsonpersist.CustomProperties;
+import dk.magenta.jsonpersist.Utilities;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -19,8 +19,9 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.Scanner;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -28,46 +29,40 @@ import java.util.Scanner;
  */
 public class FilePersistor {
 
-    public static final String CONF_LOCATION = "fpSettings";
-
     public static final String CUSTOM_FORMAT_DIR = "custom";
     public static final String STORAGE_DIR = "store";
-    private final File root;
+    private final File configuredRoot;
+    private static final Logger LOGGER = LogManager.getLogger();
 
     public FilePersistor() throws IOException {
-        Properties conf = new Properties();
-
-        String param = System.getenv(CONF_LOCATION);
-        if (param != null && !param.isEmpty()) {
-            conf.load(new FileInputStream(new File(param)));
-        } else {
-            conf.load(this.getClass().getResourceAsStream("/dk/magenta/jsonpersist/properties.txt"));
-        }
-        root = new File(conf.getProperty("root"));
+        configuredRoot = null;
     }
 
     public FilePersistor(File root) {
-        this.root = root;
+        this.configuredRoot = root;
     }
 
     public Integer saveJSON(String jsonString) throws IOException {
+        LOGGER.info("Saving json: "+jsonString);
         Integer generatedID = getNextID();
         File directory = getFolder(generatedID);
+        LOGGER.info("Saving to "+directory.getAbsolutePath());
         directory.mkdirs();
         File target = new File(directory, generatedID + "");
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(target), StandardCharsets.UTF_8))) {
             writer.write(jsonString);
         }
+        LOGGER.info("Saved to "+target);
         return generatedID;
     }
 
-    public List<String> getIDs() {
+    public List<String> getIDs() throws IOException{
         List<String> ids = new ArrayList<>();
         getIds(getStore(), ids);
         return ids;
     }
 
-    public String jsonString(Integer id) throws FileNotFoundException {
+    public String jsonString(Integer id) throws IOException {
         File contentDir = getFolder(id);
         File fileDir = new File(contentDir, id+"");
         String content = new Scanner(fileDir).useDelimiter("\\Z").next();
@@ -83,6 +78,7 @@ public class FilePersistor {
     }
 
     protected synchronized Integer getNextID() throws IOException, NumberFormatException {
+        File root = getRoot();
         File idFile = new File(root, "id");
         root.mkdirs();
         Integer nextID;
@@ -102,13 +98,25 @@ public class FilePersistor {
         return nextID;
     }
 
-    protected File getStore() {
+    protected File getStore() throws IOException {
+        File root;
+        root = getRoot();
         return new File(root, STORAGE_DIR);
     }
 
-    protected synchronized File getFolder(Integer id) {
+    protected synchronized File getFolder(Integer id) throws IOException {
         Integer folder = id / 20000;
         return new File(getStore(), folder + "");
+    }
+    
+    protected File getRoot() throws IOException{
+        if(configuredRoot != null){
+            return configuredRoot;
+        }else{
+            CustomProperties conf = Utilities.getProperties();
+            return conf.getRoot();
+        }
+        
     }
 
 }

@@ -66,7 +66,7 @@ public class StartEmbeddedTomcat {
 //    }
     public static void main(String[] args) throws ServletException, LifecycleException {
         String contextPath = "/";
-        String webappDir = new File("/home/martin/workspace/Magenta/json_persist_service/rest/target/rest").getAbsolutePath();
+        String webappDir = new File("target/rest").getAbsolutePath();
 
         Tomcat tomcat = new Tomcat();
         tomcat.setBaseDir("target/catalina");
