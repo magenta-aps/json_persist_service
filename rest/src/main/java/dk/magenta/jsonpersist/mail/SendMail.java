@@ -40,30 +40,50 @@ public class SendMail {
             JSONArray fields = block.getJSONArray("fields");
             for (int j = 0; j < fields.length(); j++) {
                 JSONObject field = fields.getJSONObject(j);
-                if ("applicant".equals(block.getString("label")) && conf.getToField().equals(field.getString("label"))) {
-                    to = field.getString("content");
-                }
-                Object value = field.get("content");
-                if(value instanceof JSONObject){
-                    JSONObject applicant = (JSONObject) value;
-                    List<String> keyList = new ArrayList<>(applicant.keySet());
-                    Collections.sort(keyList);
-                    Integer index = Integer.valueOf(field.getString("label"))+1;
-                    for(String key : keyList){
-                        table = table + "<tr><td width=\"80\">Applicant "+index+" "+key+"</td>\n";
-                        table = table + "<td width=\"280\">"+applicant.get(key)+"</td></tr>";
+                String blockLabel = block.getString("label");
+                String fieldLabel = field.getString("label");
+                if ("partners".equals(blockLabel)) {
+                    Integer index = field.getInt("label") + 1;
+                    JSONObject projectPartner = field.getJSONObject("content");
+                    table = table + getApplicantRows(projectPartner, index);
+                } else if ("project".equals(blockLabel) && "subject".equals(fieldLabel)) {
+                    table = table + getProjectRows(field);
+                } else {
+                    if ("applicant".equals(block.getString("label")) && conf.getToField().equals(field.getString("label"))) {
+                        to = field.getString("content");
                     }
-                    
-                    
-                }else{
-                    table = table + "<tr><td width=\"80\">"+field.getString("label")+"</td>\n";
-                    table = table + "<td width=\"280\">"+field.get("content")+"</td></tr>";
+                    table = table + getBasicRow(field);
                 }
-                                
+
+//                if ("applicant".equals(block.getString("label")) && conf.getToField().equals(field.getString("label"))) {
+//                    to = field.getString("content");
+//                }
+//                Object value = field.get("content");
+//                if (value instanceof JSONObject) {
+//                    JSONObject applicant = (JSONObject) value;
+//                    List<String> keyList = new ArrayList<>(applicant.keySet());
+//                    Collections.sort(keyList);
+//                    String modifier = "";
+//                    try {
+//                        modifier = (Integer.valueOf(field.getString("display_name")) + 1) + "";
+//                    } catch (NumberFormatException ex) {
+//                        modifier = field.getString("display_name");
+//                    }
+//                    table = table + "<tr ><td width=\"80\" colspan=\"2\" valign=\"top\"><strong>Projektpartner " + modifier + "</strong></td></tr>\n";
+//                    for (String key : keyList) {
+//                        JSONObject applicantPart = applicant.getJSONObject(key);
+//                        table = table + "<tr><td width=\"80\" valign=\"top\">" + applicantPart.get("display_name") + "</td>\n";
+//                        table = table + "<td width=\"280\" valign=\"top\">" + applicantPart.get("value") + "</td></tr>";
+//                    }
+//
+//                } else {
+//                    table = table + "<tr style=\"border-bottom:1px solid #dddddd\"><td width=\"80\" valign=\"top\"><strong>" + field.getString("display_name") + "</strong></td>\n";
+//                    table = table + "<td width=\"280\" valign=\"top\">" + field.get("content") + "</td></tr>";
+//                }
             }
 
         }
-        table = table +"</table>";
+        table = table + "</table>";
 
         //Get the session object  
         Properties properties = System.getProperties();
@@ -77,8 +97,6 @@ public class SendMail {
         text = text.replace("{logopath}", conf.getLogoPath());
         text = text.replace("{Footer}", "");
         text = text.replace("{values}", table);
-        
-        
 
         MimeMessage message = new MimeMessage(session);
         message.setFrom(new InternetAddress(from));
@@ -88,6 +106,34 @@ public class SendMail {
 
         // Send message  
         Transport.send(message);
+    }
+
+    public static String getBasicRow(JSONObject field) {
+        String table = "<tr style=\"border-bottom:1px solid #dddddd\"><td width=\"80\" valign=\"top\"><strong>" + field.getString("display_name") + "</strong></td>\n";
+        return table + "<td width=\"280\" valign=\"top\">" + field.get("content") + "</td></tr>";
+    }
+
+    public static String getApplicantRows(JSONObject applicant, Integer index) {
+        List<String> keyList = new ArrayList<>(applicant.keySet());
+        Collections.sort(keyList);
+
+        String tableRow = "<tr ><td width=\"80\" colspan=\"2\" valign=\"top\"><strong>Projektpartner " + index + "</strong></td></tr>\n";
+        for (String key : keyList) {
+            JSONObject applicantPart = applicant.getJSONObject(key);
+            tableRow = tableRow + "<tr><td width=\"80\" valign=\"top\">" + applicantPart.get("display_name") + "</td>\n";
+            tableRow = tableRow + "<td width=\"280\" valign=\"top\">" + applicantPart.get("value") + "</td></tr>";
+        }
+        return tableRow;
+    }
+
+    public static String getProjectRows(JSONObject project) {
+        JSONObject content = project.getJSONObject("content");
+        List<String> keyList = new ArrayList<>(content.keySet());
+        String table = "<tr ><td width=\"80\" colspan=\"2\" valign=\"top\"><strong>Projekt kategorier</strong></td></tr>\n";
+        for (String key : keyList) {
+            table = table + "<tr ><td width=\"80\" colspan=\"2\" valign=\"top\">" + content.getJSONObject(key).getString("value") + "</td></tr>\n";
+        }
+        return table;
     }
 
     protected static String getField(JSONObject payload, String fieldLabel) {
